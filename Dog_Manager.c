@@ -2,7 +2,69 @@
 
 
 
+void drawDogQueue(){
+  struct Dog * tempPointer=g_head_dog_pointer;
+  struct Dog * next_dog;
+  HANDLE handle ; 
+  int x,y;
+  COORD coord={0,0};
+   //printf("test draw dog queue 0 \n");
+handle=GetStdHandle(STD_OUTPUT_HANDLE);
+(*g_object_data_recorder.update_screen_parttern_record)();
+   do{
+   	 
+	 x=tempPointer->x;
+     y=tempPointer->y;
+     coord.X=x;
+     coord.Y=y;
+     
+     SetConsoleCursorPosition(handle,coord);
+	 printf("%c",g_screen_parttern[x][y]); 
+	 
+      //  printf("test draw dog queue 1 \n");
+     
+	 next_dog=
+	  get_next_dog_by_lengthen_direction(tempPointer);
+     
+  	 if(next_dog==0)
+  	   drawTail(tempPointer);
+ 	  else tempPointer=next_dog;
+  	  
+  	  //  printf("test draw dog queue 2 \n");
+     
+  	  
+	  }while(next_dog!=0);
+	  
+	  coord.X=0;
+	  coord.Y=0;
+	  SetConsoleCursorPosition(handle,coord);
+  	
+}
+//function end
 
+void drawTail(struct Dog * tail_dog){
+  COORD coord_up,coord_down,coord_left,coord_right,coord_mid;
+  //printf("test draw tail \n");
+   coord_up.X=tail_dog->x;
+   coord_up.Y=tail_dog->y+1;
+   
+   coord_down.X=tail_dog->x;
+   coord_down.Y=tail_dog->y-1;
+   
+   coord_left.X=tail_dog->x-1;
+   coord_left.Y=tail_dog->y;
+   
+   coord_right.X=tail_dog->x+1;
+   coord_right.Y=tail_dog->y;
+   
+   (*g_data_proccessor.draw_point)(coord_up);
+   (*g_data_proccessor.draw_point)(coord_down);
+        
+   (*g_data_proccessor.draw_point)(coord_right);
+   (*g_data_proccessor.draw_point)(coord_left);
+   
+  
+}
 
 char get_dog_parttern(struct Dog * dog){
  //if(dog==0)return ' ';
@@ -12,7 +74,7 @@ char get_dog_parttern(struct Dog * dog){
     case tail_dog:
       return '~';
 	case middle_dog:
-	  return (char)3;
+	  return '*';
 	}
 }
 
@@ -28,12 +90,12 @@ struct Dog * make_a_new_dog(int x,int y)
 	new_dog_pointer->latter=0;
 	
 	(*g_object_data_recorder.add_new_object)
-	                  ((void *)new_dog_pointer,dog);
+	                  ((void *)new_dog_pointer,dog,x,y);
 	
     return new_dog_pointer;
 }
 //尾狗的坐标要确定啊。。漏洞啊 、、、
-// 哦不。。不确定也行。。因为蛇移动的时候他会获得前面狗狗的位置 
+//哦不。。不确定也行。。因为蛇移动的时候他会获得前面狗狗的位置 
 struct Dog * add_new_dog_to_queue_tail()
 { struct Dog * new_tail_dog_pointer;
   struct Dog * temp_pointer;
@@ -119,7 +181,7 @@ void move_dog_queue()
   
  temp_x1=operating_dog_pointer->x;
  temp_y1=operating_dog_pointer->y;
- 
+ //move the head,convey the head posi to 2cd, 2cd to 3rd...
  switch(g_move_direction)
  {case up:
    operating_dog_pointer->y-=1;break;
@@ -147,7 +209,7 @@ void move_dog_queue()
   
   operating_dog_pointer=get_next_dog_pointer
     (operating_dog_pointer,lengthen_direction);
-
+// convey the coordination of this dog to the next dog
    while(operating_dog_pointer!=0)
    {
     temp_x2=operating_dog_pointer->x;  
@@ -161,9 +223,30 @@ void move_dog_queue()
 	operating_dog_pointer=get_next_dog_pointer
     (operating_dog_pointer,lengthen_direction);
   }//while loop end
-
+ 
+ drawDogQueue();
+ 
 }//move_dog_queue function end
 
+
+struct Dog * get_next_dog_by_lengthen_direction
+(struct Dog * now_operating_dog_pointer)
+{
+ enum Lengthen_Direction lengthen_direction;
+    lengthen_direction =get_lengthen_direction();
+ //printf("test get next dog by direction \n");
+ 
+ if(now_operating_dog_pointer==0){
+ 
+ return 0;}
+  switch(lengthen_direction)
+ {case formor:
+   return now_operating_dog_pointer->formor;
+ 
+  case latter:
+   return now_operating_dog_pointer->latter;
+ }
+} 
 
 
 struct Dog * get_next_dog_pointer
@@ -205,7 +288,7 @@ struct Dog * get_tail_dog_pointer()
 
 void queue_u_turn()
 {struct Dog * original_tail_dog_pointer;
-              original_tail_dog_pointer=get_tail_dog_pointer();
+ original_tail_dog_pointer=get_tail_dog_pointer();
   if(original_tail_dog_pointer!=0)//可能只有一头，没有尾狗 
   {g_head_dog_pointer->role=tail_dog;
    original_tail_dog_pointer->role=head_dog;
@@ -218,13 +301,18 @@ void queue_u_turn()
 void handle_user_input()
 {int temp_loop_times;
  int user_input;
- temp_loop_times=g_user_input_time;
+ int wait=0;
+ int wait_limit=100000/g_speed;
+ temp_loop_times=g_input_time_limit;
  fflush(stdin);
- while(temp_loop_times>0){
+ 
+ while(wait<wait_limit){
  
   fflush(stdin);
    if(_kbhit())//if user inputed something
     {user_input=getch();
+    g_continuous_key_down++;
+    
     fflush(stdin);
      switch(user_input)
 	 {
@@ -270,8 +358,8 @@ void handle_user_input()
 	}//switch end
    	
   }else
-	{sleep(1);
-	 temp_loop_times--;
+	{Sleep(1);
+	 wait++;
 	 }
   
   }//while end
@@ -283,7 +371,8 @@ enum Lengthen_Direction get_lengthen_direction()
     g_head_dog_pointer->formor==0)
  {return latter;}
  else if(g_head_dog_pointer->latter!=0)
- {return latter;}else{return formor;}
+ {return latter;}
+ else{return formor;}
 
 }
 
@@ -342,11 +431,14 @@ void majic_u_turn()
 
 void majic_clean_all_brick()
 {enum Boolean user_confirm;
+ SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
  if(g_MP>=50)
  { user_confirm=wait_user_confirm("终极大招会耗费全部魔法和血量，确定要释放吗？");
   if(user_confirm==true)
    {g_MP=0; g_HP=1;
     g_object_data_recorder.delete_a_class(brick);
+    (*g_object_data_recorder.update_screen_parttern_record)();
+    (*g_data_proccessor.draw_screen)();
     printf("大招释放完成，HP MP耗尽,按下任意键继续游戏\n");
 	getch(); 
    }//user confirm if end
@@ -362,40 +454,53 @@ void majic_clean_all_brick()
 
 
 void majic_slow_down()
-{ if(g_MP>=10)
+{ SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+
+ if(g_MP>=10)
   {g_MP-=10;
-   g_user_input_time+=300;
-   printf("减速成功,输入时间增加0.3秒 按任意键继续");
+   g_speed*=0.5f;
+   printf("减速成功,速度减半 按任意键继续");
    getch();
   }else{
    printf("魔法不足,无法减速 任意键继续");
    getch();
   }
-  
+   (*g_data_proccessor.clean_announcement)();  
 	
 }
  
  void majic_accelerate()
- { g_user_input_time-=500;
-	printf("加速成功，输入时间减少0.5秒，祝好运，按任意键继续 ");
+ {
+  SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+  g_speed*=1.2f;
+	printf("施法成功，加速20%，祝好运，按任意键继续 ");
 	getch(); 
+	(*g_data_proccessor.clean_announcement)();
   }
  
  void majic_heal()
- {if(g_MP>=4)
+ {
+ SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+ if(g_MP>=4)
    {g_MP-=4;
     g_HP+=3;
 	printf("成功恢复3点HP，消耗4点魔法,按任意键继续" );
 	getch(); 
+	(*g_data_proccessor.clean_announcement)();
   }else{
   printf("成功恢复3点HP,按任意键继续" );
   getch(); 
+  (*g_data_proccessor.clean_announcement)();
  }//else end 
+  (*g_data_proccessor.clean_announcement)();
+ 
  }
  
  
  enum Boolean wait_user_confirm(char * message)
  {char user_input;
+ SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+ 
  printf("确认："); 
   printf("%s",message);
 
@@ -406,14 +511,24 @@ void majic_slow_down()
   fflush(stdin);
   if(user_input=='y'||user_input=='Y')
    {
-  
+    (*g_data_proccessor.clean_announcement)();
+     
 	return true;
    
    }else if(user_input=='n'||user_input=='N')
    {
+   	SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+  printf("                                                           ");
+  
   
    return false;}
-    else{printf("输入有误，请重新输入");}
+    else{
+(*g_data_proccessor.clean_announcement)();
+SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+	 printf("输入有误，请重新输入");
+ 
+ 
+ }
  }//while end
  }//function end
 
@@ -426,7 +541,7 @@ dog_manager.make_a_dog_queue     =&make_a_dog_queue;
 dog_manager.add_new_dog_to_queue_tail
                                  =&add_new_dog_to_queue_tail;       
 dog_manager.make_a_new_dog       =&make_a_new_dog;
-dog_manager.queue_u_turn         =&queue_u_turn;                 ;
+dog_manager.queue_u_turn         =&queue_u_turn;                 
 dog_manager.get_lengthen_direction=&get_lengthen_direction; 
 dog_manager.move_dog_queue       =&move_dog_queue; 
 dog_manager.get_next_dog_pointer =&get_next_dog_pointer;

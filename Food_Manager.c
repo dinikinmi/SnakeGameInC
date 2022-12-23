@@ -1,4 +1,4 @@
-#include "E:\g\g\self business\文科JAVA\dog_snake\dog_snake\Food_Manager.h"
+#include "Food_Manager.h"
 
 char get_food_parttern(struct Food * food)
 {
@@ -27,7 +27,7 @@ void make_a_food(int x,int y,enum Food_Type type)
  food_pointer->y=y;
  food_pointer->type=type;
  (*g_object_data_recorder.add_new_object)
- ((void*)food_pointer,food);
+ ((void*)food_pointer,food,x,y);
  g_food_counter++;
 }
 
@@ -37,6 +37,7 @@ void make_a_random_food()
 {int x,y,food_code;
  enum Class object_class;
  enum Food_Type food_type;  
+
  do  
  {x=rand()%x_asix_length;
   y=rand()%y_asix_length;
@@ -52,9 +53,13 @@ void make_a_random_food()
   food_type=score;break;
  case 1:
   food_type=hp;break;
+ 
  case 2:
- food_type=mp;break;
- case 3 :
+ case 3:
+ food_type=mp;
+ break;
+ 
+ case 4:
  food_type=time_slow;break;
  default :
   food_type=score;break;
@@ -77,10 +82,18 @@ void eating_event_handle(struct Food * eaten_food_pointer)
 	increment=g_speed*speed_coefficent;
 	if(increment<1){increment=1;} 
 	g_HP=g_HP+increment;
+	
+	SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
 	printf
 	("以%d速度吃了加血药丸，增加%d血量，速度越快增加越多，按任意键继续",
 	g_speed,increment);
     getch();
+    SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+	printf
+	("                                                                   ");
+    SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+	
+    
 	break;
 	
 	case mp:
@@ -94,8 +107,8 @@ void eating_event_handle(struct Food * eaten_food_pointer)
 	break;
 	
 	case time_slow:
-	g_user_input_time+=500;
-	printf("吃了减速药丸，输入时间增加了500毫秒，任意键继续"); 
+     g_speed*=0.6;
+	printf("吃了减速药丸，速度下降6成，任意键继续"); 
 	getch();
 	break;
 	

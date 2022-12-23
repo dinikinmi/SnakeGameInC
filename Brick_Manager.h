@@ -1,7 +1,5 @@
 #ifndef BRICK_MANAGER_H
 #define BRICK_MANAGER_H
-//#inclue "Global_Define.h"
-//#inclue "Global_Value.h"
 
 #include "Data_Proccessor.h"
 #include "Global_Define.h"

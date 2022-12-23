@@ -2,7 +2,7 @@
 
 void handle_hitting_event(struct Brick * hitting_brick)
 {int left_HP;
- sleep(500);
+ Sleep(500);
   g_HP=g_HP-hitting_brick->hardness;
  if(g_HP>0)
  { printf("碰上砖头，血量减少%d 任意键继续",hitting_brick->hardness);
@@ -67,7 +67,7 @@ struct Brick * make_a_brick(int x,int y , int hardness)
  brick_pointer->x=x;
  brick_pointer->y=y;
  brick_pointer->hardness=hardness;
-(g_object_data_recorder.add_new_object)((void*)brick_pointer,brick);
+(g_object_data_recorder.add_new_object)((void*)brick_pointer,brick,x,y);
  return brick_pointer;
 }
 
