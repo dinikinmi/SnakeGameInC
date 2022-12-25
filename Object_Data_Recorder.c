@@ -142,9 +142,7 @@ formor_object_pointer=checking_object_pointer->formor;
   }
     else{checking_object_pointer=latter_object_pointer;
 	 }
- 
 }
-
 }
 
 

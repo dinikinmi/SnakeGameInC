@@ -19,6 +19,7 @@ handle=GetStdHandle(STD_OUTPUT_HANDLE);
      coord.Y=y;
      
      SetConsoleCursorPosition(handle,coord);
+     (*g_data_proccessor.setPartternColor)(g_screen_parttern[x][y]);
 	 printf("%c",g_screen_parttern[x][y]); 
 	 
       //  printf("test draw dog queue 1 \n");
@@ -304,11 +305,17 @@ void handle_user_input()
  int wait=0;
  int wait_limit=100000/g_speed;
  temp_loop_times=g_input_time_limit;
+ int time_0,time_1;
+ time_0=(*g_data_proccessor.current_timestamp)();
+ 
+ wait=(*g_data_proccessor.current_timestamp)()-time_0;
+ 
  fflush(stdin);
  
- while(wait<wait_limit){
- 
+ while(wait<g_input_interval){
+  wait=(*g_data_proccessor.current_timestamp)()-time_0;
   fflush(stdin);
+  
    if(_kbhit())//if user inputed something
     {user_input=getch();
     g_continuous_key_down++;
@@ -327,39 +334,52 @@ void handle_user_input()
 	  case key_a:
 	  if(g_move_direction!=right)
 	  {g_move_direction=left;  fflush(stdin);}return;
-	  
+	   
 	  case key_d:
 	  if(g_move_direction!=left)
 	  {g_move_direction=right;  fflush(stdin);}return;
 	  
-	  case key_z:
-	  majic_teleport();break;
-	  
 	  case key_x:
+	  majic_teleport();
+	  Beep(1000,10);
+	  break;
+	  
+	  case key_c:
+	  Beep(2000,10);
 	  majic_u_turn();break;
 	 
-	  case key_c:
+	  case key_q:
+	  Beep(3000,10);
 	  majic_clean_all_brick();
 	  g_brick_manager.make_4_wall();
 	  break;
 	 
       case key_e:
+      Beep(4000,10);
+      fflush(stdin);
       majic_slow_down();break;
       
-      case key_q:
-      majic_heal();break;
-      
       case key_r:
+      Beep(5000,10);
+	  fflush(stdin);
+	  majic_heal();break;
+      
+      case key_z:
+      Beep(6000,10);
+	  fflush(stdin);
 	  majic_accelerate(); break;
 	  
-
+      case key_f:
+      Beep(7000,10);
+      fflush(stdin);
+      magic_fresh(); 
 	  default :
 	    return;  
 	}//switch end
    	
   }else
 	{Sleep(1);
-	 wait++;
+	 //wait++;
 	 }
   
   }//while end
@@ -380,73 +400,135 @@ void majic_teleport()
 {int aims_x,aims_y;
  enum Boolean user_confirm;
  user_confirm=false;
- if(g_MP<5)
- {  
-  strcpy(g_anouncement,"时空转移失败，魔法不足");}
-  else{
-  g_MP=g_MP-5;
+
+if(g_MP<5)
+ { 
+ //(*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2);
+  
+  //strcpy(g_anouncement,"时空转移失败，魔法不足");}
+  (*g_data_proccessor.setCursorInDefaultHandle)
+    (g_head_dog_pointer->x+1,g_head_dog_pointer->y+2);
+  printf("魔法值不足(O_O)");
+  }
+ 	
+else{
+  (*g_object_data_recorder.update_screen_parttern_record)();
+  (*g_data_proccessor.draw_screen)();
+   
+ g_MP=g_MP-5;
  do{ 
- printf("开始空间转移 ");
- printf("请输入要到达的x坐标");
+
+(*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2);
+  printf("开始空间转移 ");
+
+(*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2+1);
+ 
+
+ printf("请输入要到达的X坐标");
+ 
+ (*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2+2);
+ 
  fflush(stdin);
  scanf("%d",&aims_x,1);
- printf("请输入要到达的y坐标 ");
+ 
+ (*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2+3);
+ printf("请输入要到达的Y坐标 ");
+ 
  fflush(stdin);
  scanf("%d",&aims_y,1); 
- printf(" %d %d ",aims_x,aims_y);
+
+// printf(" %d %d ",aims_x,aims_y);
  fflush(stdin);
   g_move_direction=stay;
-  if(aims_x>x_asix_length-1){aims_x=x_asix_length-1;}
-  if(aims_x<0){aims_x=1;}
+  if(aims_x>x_asix_length-1){aims_x=x_asix_length-2;}
+  if(aims_x<=0){aims_x=2;}
   
-  if(aims_y>y_asix_length-1){aims_y=y_asix_length-1;}
-  if(aims_y<0){aims_y=1;}
- 
-   printf("q %d %d ",aims_x,aims_y);getch();
+  if(aims_y>y_asix_length-1){aims_y=y_asix_length-2;}
+  if(aims_y<=0){aims_y=2;}
+  
    
   g_head_dog_pointer->x=aims_x;
   g_head_dog_pointer->y=aims_y;
   g_object_data_recorder.update_screen_parttern_record();
   g_data_proccessor.draw_screen();
+
+
+  (*g_data_proccessor.setCursorInDefaultHandle)
+    (g_head_dog_pointer->x,g_head_dog_pointer->y);
+  printf("@ <-------蛇头跳转到这里啦，按任意键继续咯");
+   //printf("q %d %d ",aims_x,aims_y);
+   getch();
+
    
-   printf("输入完成"); 
+//   printf("输入完成"); 
  //  printf("qq %d %d ",aims_x,aims_y);
    
   
-  user_confirm=wait_user_confirm("确定转移到此坐标吗？"); 
-  if(user_confirm==true){printf("时空转移成功，按任意方向键继续");} 
+  //user_confirm=wait_user_confirm("确定转移到此坐标吗？"); 
+   user_confirm=true;
+   
+   if(user_confirm==true){
+   printf("时空转移成功，按任意方向键继续");
+  
+  } 
   }while(user_confirm!=true);
    //if end 
  }//else end	
 }// function end 
 
 void majic_u_turn()
-{if(g_MP>=1)
-  {g_MP-=1;
+{if(g_MP>=2)
+  {g_MP-=2;
    queue_u_turn();
    g_move_direction=stay; 
-  printf("调头成功，耗费1点魔法, 从新输入方向继续游戏");getch();    
-  }
+   (*g_object_data_recorder.update_screen_parttern_record)();
+   (*g_data_proccessor.draw_screen)();
+   (*g_data_proccessor.setCursorInDefaultHandle)
+       (g_head_dog_pointer->x,g_head_dog_pointer->y); 
+  printf("@ <----调头成功,魔法值-2，头在这里，按WASD继续前进");
+  getch();    
+  }else{
+(*g_data_proccessor.setCursorInDefaultHandle)
+   (g_head_dog_pointer->x+1,g_head_dog_pointer->y+2);
+  printf("魔法值不足(O_O)");
+   }
+  
 }
 
 void majic_clean_all_brick()
 {enum Boolean user_confirm;
  SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+
  if(g_MP>=50)
- { user_confirm=wait_user_confirm("终极大招会耗费全部魔法和血量，确定要释放吗？");
-  if(user_confirm==true)
-   {g_MP=0; g_HP=1;
+ { //user_confirm=true;
+ //=wait_user_confirm("终极大招会耗费全部魔法和血量，确定要释放吗？");
+  //if(user_confirm==true)
+   //{
+   g_MP=0; 
+    g_HP=g_HP*0.1f;
     g_object_data_recorder.delete_a_class(brick);
     (*g_object_data_recorder.update_screen_parttern_record)();
     (*g_data_proccessor.draw_screen)();
-    printf("大招释放完成，HP MP耗尽,按下任意键继续游戏\n");
+    (*g_data_proccessor.setCursorInDefaultHandle)(x_asix_length/2,y_asix_length/2);
+	printf("大招释放完成，MP耗尽,HP剩下百分之10,按下任意键继续游戏");
 	getch(); 
-   }//user confirm if end
-   	else{ strcpy(g_anouncement,"魔法不足，放不了终极大招"); 
+
+/*   }//user confirm if end
+   	else{ 
+	   (*g_data_proccessor.setCursorInDefaultHandle
+	      (g_head_dog_pointer->x,g_head_dog_pointer->y)); 
+	   printf("技能施放失败，MP值不足(O_O!!)");
+	   
+	   //strcpy(g_anouncement,"魔法不足，放不了终极大招"); 
    
    }//user confirm else end
- }else{
- strcpy(g_anouncement,"魔法不足50，放不了终极大招");
+ 
+ */
+ 	}else{
+	   (*g_data_proccessor.setCursorInDefaultHandle)(g_head_dog_pointer->x,g_head_dog_pointer->y); 
+	   printf("魔法值不足 50(O_O!!)");
+ 	
+// strcpy(g_anouncement,"魔法不足50，放不了终极大招");
   }//g_MP if  end
   
 	
@@ -455,19 +537,42 @@ void majic_clean_all_brick()
 
 void majic_slow_down()
 { SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
-
- if(g_MP>=10)
-  {g_MP-=10;
-   g_speed*=0.5f;
-   printf("减速成功,速度减半 按任意键继续");
+ int interval_changed;
+ 
+ if(g_MP>=10 && g_input_interval<3001)
+  {  
+	g_MP-=10;    
+    interval_changed= g_input_interval*2;
+    if(interval_changed>3000)
+     interval_changed=3000;
+    
+    g_input_interval=interval_changed;
+ 
+   (*g_data_proccessor.setCursorInDefaultHandle)
+      (g_head_dog_pointer->x+1,g_head_dog_pointer->y+2);
+   printf("减速成功,输入间隔为%d秒",g_input_interval);
+   
+   /*g_speed*=0.5f;
+   
+   (*g_data_proccessor.setCursorInDefaultHandle)
+      (g_head_dog_pointer->x+1,g_head_dog_pointer->y+2);
+   printf("减速成功,速度减半");
+   
    getch();
-  }else{
-   printf("魔法不足,无法减速 任意键继续");
-   getch();
+  
+  	*/
   }
-   (*g_data_proccessor.clean_announcement)();  
-	
+else{
+  
+  (*g_data_proccessor.setCursorInDefaultHandle)(g_head_dog_pointer->x,g_head_dog_pointer->y); 
+  printf("技能施放失败，MP值不足(O_O!!)");
+  
+  getch();	
+  }
+   //(*g_data_proccessor.clean_announcement)();  
+  
 }
+
  
  void majic_accelerate()
  {
@@ -478,30 +583,57 @@ void majic_slow_down()
 	(*g_data_proccessor.clean_announcement)();
   }
  
+ void magic_fresh(){
+ 	if(g_MP<5){
+
+   (*g_data_proccessor.setCursorInDefaultHandle)(g_head_dog_pointer->x+1,g_head_dog_pointer->y+2); 
+    printf("技能施放失败，MP值不足(O_O!!)");
+   getch();	
+
+     fflush(stdin);
+     return;
+	 }else{
+ 	(*g_object_data_recorder.update_screen_parttern_record)();
+	 (*g_data_proccessor.draw_screen)();
+	 g_MP-=5;	
+ 	}//else end
+ }//function end
+ 
  void majic_heal()
  {
  SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
+ 
  if(g_MP>=4)
    {g_MP-=4;
     g_HP+=3;
-	printf("成功恢复3点HP，消耗4点魔法,按任意键继续" );
-	getch(); 
-	(*g_data_proccessor.clean_announcement)();
+
+//printf("成功恢复3点HP，消耗4点魔法,按任意键继续" );
+
+ (*g_data_proccessor.setCursorInDefaultHandle)
+ (g_head_dog_pointer->x,g_head_dog_pointer->y); 
+  printf("技能施放完成，MP-4，HP加3");
+  
+  getch();	
+ //(*g_data_proccessor.clean_announcement)();
   }else{
-  printf("成功恢复3点HP,按任意键继续" );
-  getch(); 
-  (*g_data_proccessor.clean_announcement)();
- }//else end 
-  (*g_data_proccessor.clean_announcement)();
  
+  (*g_data_proccessor.setCursorInDefaultHandle)(g_head_dog_pointer->x,g_head_dog_pointer->y); 
+  printf("MP不足，释放失败(O_O)");
+  getch(); 
+  
+   // (*g_data_proccessor.clean_announcement)();
+   }//else end 
+  
+  //(*g_data_proccessor.clean_announcement)();
  }
+ 
  
  
  enum Boolean wait_user_confirm(char * message)
  {char user_input;
  SetConsoleCursorPosition(g_consoleHandle,g_announcementCoord);
  
- printf("确认："); 
+  printf("确认："); 
   printf("%s",message);
 
  while(true){
@@ -554,6 +686,7 @@ dog_manager.majic_clean_all_brick=&majic_clean_all_brick;
 dog_manager.majic_heal           =&majic_heal;
 dog_manager.wait_user_confirm    =&wait_user_confirm;
 dog_manager.majic_accelerate     =&majic_accelerate;
+dog_manager.magic_fresh          =&magic_fresh;
 return dog_manager;
 }
 
