@@ -1,18 +1,47 @@
 #include "Brick_Manager.h"
 
 void handle_hitting_event(struct Brick * hitting_brick)
-{int left_HP;
- sleep(500);
+{ int left_HP;
+  float delta_score;
+  g_brick_number--;
+ 
+  //Sleep(500);
+ 
   g_HP=g_HP-hitting_brick->hardness;
- if(g_HP>0)
- { printf("碰上砖头，血量减少%d 任意键继续",hitting_brick->hardness);
- getch(); 
-  (*g_object_data_recorder.delete_an_object)((void*)hitting_brick);
- }else
- {printf("你被撞死了 %d ",hitting_brick->hardness);
-  getch(); 
+  delta_score= hitting_brick->hardness*g_speed*0.01; 
+  g_score=g_score-delta_score;
   
- g_game_over=true;}		
+ if(g_HP>0)
+ { 
+ 
+(*g_data_proccessor.setCursorInDefaultHandle)
+   (hitting_brick->x-1,hitting_brick->y+2);
+ printf("-------------------------------------");
+ 
+(*g_data_proccessor.setCursorInDefaultHandle)
+   (hitting_brick->x-1,hitting_brick->y+3);
+   
+ printf("|哎呀！痛屎我啦。HP减少%d,分数减少%f|",
+        hitting_brick->hardness,
+		delta_score 
+	    );
+(*g_data_proccessor.setCursorInDefaultHandle)
+(hitting_brick->x-1,hitting_brick->y+4);
+printf("-------------------------------------");
+  
+	    
+ 
+ (*g_object_data_recorder.delete_an_object)((void*)hitting_brick);
+
+ //getch(); 
+ fflush(stdin);
+ 
+  
+ }else{
+  printf("你被撞死了啊啊啊 %d ",hitting_brick->hardness);
+  getch();  
+  g_game_over=true;
+  }		
 }
 
 void  make_a_wall(int x_start,int y_start,
@@ -62,12 +91,12 @@ int x,y,hardness;
 
 struct Brick * make_a_brick(int x,int y , int hardness)
 {struct Brick * brick_pointer=
-(struct Brick *)malloc
-(sizeof(struct Brick));
+(struct Brick *)malloc(sizeof(struct Brick));
  brick_pointer->x=x;
  brick_pointer->y=y;
  brick_pointer->hardness=hardness;
-(g_object_data_recorder.add_new_object)((void*)brick_pointer,brick);
+(g_object_data_recorder.add_new_object)((void*)brick_pointer,brick,x,y);
+ g_brick_number++;
  return brick_pointer;
 }
 
