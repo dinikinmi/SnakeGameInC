@@ -19,10 +19,11 @@
 #define key_e 101
 #define key_q 113
 #define key_r 114
+#define key_f 102
 
 
 
-#define x_asix_length 50
+#define x_asix_length 100
 #define y_asix_length 20
 
 
